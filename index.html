@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EstudoFlow - Plataforma de Acompanhamento de Estudos</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col md:flex-row transition-colors duration-200">
+
+    <!-- SIDEBAR / NAVIGATION (DESKTOP) -->
+    <aside class="hidden md:flex flex-col w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 h-screen sticky top-0 z-30 p-4 justify-between shadow-sm">
+        <div>
+            <!-- LOGO -->
+            <div class="flex items-center gap-3 px-3 py-2 mb-8">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
+                    <i class="fa-solid fa-graduation-cap text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight tracking-tight text-slate-900 dark:text-white">EstudoFlow</h1>
+                    <span class="text-xs text-indigo-600 dark:text-indigo-400 font-medium">Plataforma de Estudos</span>
+                </div>
+            </div>
+
+            <!-- NAV LINKS -->
+            <nav class="space-y-1">
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all text-indigo-600 bg-indigo-50 dark:bg-indigo-900/40 dark:text-indigo-300">
+                    <i class="fa-solid fa-chart-pie w-5 text-center"></i>
+                    <span>Dashboard</span>
+                </button>
+                <button onclick="switchTab('timer')" id="nav-timer" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50">
+                    <i class="fa-solid fa-stopwatch w-5 text-center"></i>
+                    <span>Cronômetro</span>
+                </button>
+                <button onclick="switchTab('calendar')" id="nav-calendar" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50">
+                    <i class="fa-solid fa-calendar-days w-5 text-center"></i>
+                    <span>Calendário</span>
+                </button>
+                <button onclick="switchTab('analytics')" id="nav-analytics" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50">
+                    <i class="fa-solid fa-chart-column w-5 text-center"></i>
+                    <span>Relatórios</span>
+                </button>
+                <button onclick="switchTab('subjects')" id="nav-subjects" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50">
+                    <i class="fa-solid fa-book w-5 text-center"></i>
+                    <span>Matérias</span>
+                </button>
+                <button onclick="switchTab('settings')" id="nav-settings" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50">
+                    <i class="fa-solid fa-gear w-5 text-center"></i>
+                    <span>Configurações</span>
+                </button>
+            </nav>
+        </div>
+
+        <!-- QUICK TIMER STATUS CARD IN SIDEBAR -->
+        <div class="bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-700/80 rounded-2xl p-3 text-xs">
+            <div class="flex items-center justify-between mb-1">
+                <span class="font-semibold text-slate-700 dark:text-slate-200">Sessão Ativa</span>
+                <span id="sidebar-status-tag" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-600 dark:bg-slate-600 dark:text-slate-300">PARADO</span>
+            </div>
+            <div id="sidebar-timer-display" class="font-mono text-lg font-bold text-slate-900 dark:text-white">00:00:00</div>
+            <p id="sidebar-subject-display" class="text-slate-500 dark:text-slate-400 truncate mt-0.5">Nenhuma matéria</p>
+        </div>
+    </aside>
+
+    <!-- MOBILE HEADER -->
+    <header class="md:hidden bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <span class="font-bold text-base text-slate-900 dark:text-white">EstudoFlow</span>
+        </div>
+        <button onclick="toggleDarkMode()" class="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700">
+            <i class="fa-solid fa-moon dark:hidden"></i>
+            <i class="fa-solid fa-sun hidden dark:block text-amber-400"></i>
+        </button>
+    </header>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full pb-24 md:pb-8 overflow-y-auto custom-scrollbar">
+
+        <!-- 1. DASHBOARD TAB -->
+        <section id="tab-dashboard" class="tab-content space-y-6">
+            <!-- HEADER -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Seu Painel de Estudos</h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Acompanhe seu desempenho diário e mantenha o ritmo constante.</p>
+                </div>
+                <button onclick="switchTab('timer')" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm shadow-md shadow-indigo-500/20 transition-all self-start md:self-auto">
+                    <i class="fa-solid fa-play"></i>
+                    <span>Iniciar Estudo</span>
+                </button>
+            </div>
+
+            <!-- STATS CARDS -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+                        <span class="text-xs font-medium uppercase tracking-wider">Estudado Hoje</span>
+                        <i class="fa-solid fa-clock text-indigo-500"></i>
+                    </div>
+                    <div id="stat-today-hours" class="text-2xl font-bold text-slate-900 dark:text-white">0h 00m</div>
+                    <div class="mt-2 text-xs text-slate-500 flex items-center gap-1">
+                        <span>Meta diária:</span>
+                        <span id="stat-goal-target" class="font-semibold text-slate-700 dark:text-slate-300">4h</span>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+                        <span class="text-xs font-medium uppercase tracking-wider">Sequência (Streak)</span>
+                        <i class="fa-solid fa-fire text-amber-500"></i>
+                    </div>
+                    <div id="stat-streak" class="text-2xl font-bold text-amber-500">0 dias</div>
+                    <p class="mt-2 text-xs text-slate-500 truncate">Estudo diário contínuo</p>
+                </div>
+
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+                        <span class="text-xs font-medium uppercase tracking-wider">Total Acumulado</span>
+                        <i class="fa-solid fa-chart-line text-emerald-500"></i>
+                    </div>
+                    <div id="stat-total-hours" class="text-2xl font-bold text-slate-900 dark:text-white">0h 00m</div>
+                    <p id="stat-total-sessions" class="mt-2 text-xs text-slate-500">0 sessões registradas</p>
+                </div>
+
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+                        <span class="text-xs font-medium uppercase tracking-wider">Matéria Líder</span>
+                        <i class="fa-solid fa-trophy text-violet-500"></i>
+                    </div>
+                    <div id="stat-top-subject" class="text-lg font-bold text-slate-900 dark:text-white truncate">--</div>
+                    <p id="stat-top-subject-hours" class="mt-2 text-xs text-slate-500">0 min estudados</p>
+                </div>
+            </div>
+
+            <!-- PROGRESS BAR CARD -->
+            <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-semibold text-slate-800 dark:text-slate-200">Progresso da Meta Diária</span>
+                    <span id="goal-percentage" class="text-sm font-bold text-indigo-600 dark:text-indigo-400">0%</span>
+                </div>
+                <div class="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
+                    <div id="goal-progress-bar" class="bg-gradient-to-r from-indigo-500 to-violet-600 h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- TWO COLUMN DASHBOARD LAYOUT -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- RECENT SESSIONS LIST -->
+                <div class="lg:col-span-2 bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-slate-900 dark:text-white">Últimas Sessões de Estudo</h3>
+                        <button onclick="switchTab('analytics')" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-medium">Ver tudo</button>
+                    </div>
+                    <div id="dashboard-recent-list" class="space-y-3">
+                        <!-- Dynamic items inserted here -->
+                    </div>
+                </div>
+
+                <!-- QUICK SUBJECTS SUMMARY -->
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-bold text-slate-900 dark:text-white mb-4">Matérias da sua Matriz</h3>
+                        <div id="dashboard-subject-pills" class="space-y-2 max-h-64 overflow-y-auto custom-scrollbar pr-1">
+                            <!-- Dynamic list -->
+                        </div>
+                    </div>
+                    <button onclick="switchTab('subjects')" class="w-full mt-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-xl transition">
+                        Gerenciar Matérias
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. TIMER / STOPWATCH TAB -->
+        <section id="tab-timer" class="tab-content hidden space-y-6">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Cronômetro de Estudo Líquido</h2>
+                <p class="text-sm text-slate-500 dark:text-slate-400">Grave seu tempo exato de dedicação com controle total de pausas.</p>
+            </div>
+
+            <!-- MODE SELECTOR (STOPWATCH vs MANUAL ENTRY) -->
+            <div class="flex border-b border-slate-200 dark:border-slate-700">
+                <button onclick="setTimerSubMode('stopwatch')" id="submode-stopwatch" class="py-2.5 px-4 font-medium text-sm border-b-2 border-indigo-600 text-indigo-600 dark:text-indigo-400">
+                    <i class="fa-solid fa-stopwatch mr-2"></i>Cronômetro em Tempo Real
+                </button>
+                <button onclick="setTimerSubMode('manual')" id="submode-manual" class="py-2.5 px-4 font-medium text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400">
+                    <i class="fa-solid fa-pen-to-square mr-2"></i>Lançamento Manual
+                </button>
+            </div>
+
+            <!-- STOPWATCH PANEL -->
+            <div id="timer-mode-stopwatch" class="bg-white dark:bg-slate-800 p-6 md:p-10 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm text-center max-w-2xl mx-auto space-y-6">
+                <!-- SUBJECT SELECTOR -->
+                <div class="text-left max-w-md mx-auto">
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2">Selecione a Matéria</label>
+                    <select id="timer-subject-select" class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <!-- Dynamic options -->
+                    </select>
+                </div>
+
+                <!-- TOPIC INPUT -->
+                <div class="text-left max-w-md mx-auto">
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2">Assunto / Tópico Estudado (Opcional)</label>
+                    <input type="text" id="timer-topic-input" placeholder="Ex: Direitos Fundamentais, Porcentagem, Crase..." class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+
+                <!-- TIMER DISPLAY -->
+                <div class="py-6">
+                    <div id="main-timer-display" class="font-mono text-6xl md:text-7xl font-bold tracking-tight text-slate-900 dark:text-white">
+                        00:00:00
+                    </div>
+                    <p id="timer-status-text" class="text-xs font-semibold uppercase tracking-widest text-slate-400 mt-2">Pronto para iniciar</p>
+                </div>
+
+                <!-- CONTROLS -->
+                <div class="flex items-center justify-center gap-4 pt-2">
+                    <button id="btn-timer-start" onclick="startTimer()" class="w-16 h-16 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center text-xl shadow-lg shadow-indigo-500/30 transition transform active:scale-95">
+                        <i class="fa-solid fa-play ml-1"></i>
+                    </button>
+                    <button id="btn-timer-pause" onclick="pauseTimer()" disabled class="w-16 h-16 rounded-full bg-amber-500 hover:bg-amber-600 text-white flex items-center justify-center text-xl shadow-lg shadow-amber-500/30 transition transform active:scale-95 opacity-50 cursor-not-allowed">
+                        <i class="fa-solid fa-pause"></i>
+                    </button>
+                    <button id="btn-timer-stop" onclick="finishTimer()" disabled class="w-16 h-16 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center text-xl shadow-lg shadow-emerald-500/30 transition transform active:scale-95 opacity-50 cursor-not-allowed">
+                        <i class="fa-solid fa-check"></i>
+                    </button>
+                </div>
+
+                <!-- QUESTIONS STATS INPUTS -->
+                <div class="pt-6 border-t border-slate-100 dark:border-slate-700/60 max-w-md mx-auto grid grid-cols-2 gap-4 text-left">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Questões Resolvidas</label>
+                        <input type="number" id="timer-questions-count" min="0" value="0" class="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Questões Acertadas</label>
+                        <input type="number" id="timer-questions-correct" min="0" value="0" class="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white text-sm">
+                    </div>
+                </div>
+            </div>
+
+            <!-- MANUAL ENTRY PANEL -->
+            <div id="timer-mode-manual" class="hidden bg-white dark:bg-slate-800 p-6 md:p-8 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm max-w-xl mx-auto space-y-4">
+                <h3 class="font-bold text-lg text-slate-900 dark:text-white mb-2">Registrar Estudo Passado</h3>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Matéria</label>
+                    <select id="manual-subject-select" class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white text-sm">
+                        <!-- Dynamic options -->
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Assunto / Tópico</label>
+                    <input type="text" id="manual-topic-input" placeholder="Ex: Leis Penais Especiais..." class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white text-sm">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Data</label>
+                        <input type="date" id="manual-date-input" class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Duração (Minutos)</label>
+                        <input type="number" id="manual-duration-input" min="1" placeholder="Ex: 60" class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white text-sm">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Questões Feitas</label>
+                        <input type="number" id="manual-questions-count" min="0" value="0" class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Questões Acertadas</label>
+                        <input type="number" id="manual-questions-correct" min="0" value="0" class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white text-sm">
+                    </div>
+                </div>
+
+                <button onclick="saveManualSession()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-md transition mt-2">
+                    Salvar Sessão de Estudo
+                </button>
+            </div>
+        </section>
+
+        <!-- 3. CALENDAR TAB -->
+        <section id="tab-calendar" class="tab-content hidden space-y-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Calendário de Estudos</h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Acompanhe visualmente a sua constância ao longo dos dias.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="changeCalendarMonth(-1)" class="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <span id="calendar-month-year" class="font-bold text-slate-800 dark:text-slate-200 px-2 min-w-[120px] text-center">Novembro 2026</span>
+                    <button onclick="changeCalendarMonth(1)" class="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- CALENDAR GRID -->
+            <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-4 md:p-6 shadow-sm">
+                <!-- DAYS OF WEEK HEADER -->
+                <div class="grid grid-cols-7 text-center font-semibold text-xs text-slate-400 uppercase tracking-wider mb-2">
+                    <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
+                </div>
+
+                <!-- DAYS GRID -->
+                <div id="calendar-days-grid" class="grid grid-cols-7 gap-1 md:gap-2">
+                    <!-- Dynamic calendar cells -->
+                </div>
+            </div>
+
+            <!-- DAY DETAILS MODAL / CARD -->
+            <div id="day-details-panel" class="hidden bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
+                <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-700/80 pb-2">
+                    <h3 id="day-details-title" class="font-bold text-slate-900 dark:text-white">Estudos no dia 16/11/2026</h3>
+                    <button onclick="closeDayDetails()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div id="day-details-list" class="space-y-2">
+                    <!-- Dynamic sessions list -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. ANALYTICS / REPORTS TAB -->
+        <section id="tab-analytics" class="tab-content hidden space-y-6">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Relatórios & Desempenho</h2>
+                <p class="text-sm text-slate-500 dark:text-slate-400">Análise gráfica e estatísticas detalhadas da sua dedicação.</p>
+            </div>
+
+            <!-- CHARTS GRID -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- PIE CHART (TIME PER SUBJECT) -->
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <h3 class="font-bold text-slate-900 dark:text-white mb-4">Distribuição do Tempo por Matéria</h3>
+                    <div class="relative h-64 flex items-center justify-center">
+                        <canvas id="chart-pie-subjects"></canvas>
+                    </div>
+                </div>
+
+                <!-- BAR CHART (DAILY HOURS) -->
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <h3 class="font-bold text-slate-900 dark:text-white mb-4">Evolução dos Últimos 14 Dias (Horas)</h3>
+                    <div class="relative h-64">
+                        <canvas id="chart-bar-daily"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FULL SESSIONS HISTORY TABLE -->
+            <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <h3 class="font-bold text-slate-900 dark:text-white">Histórico Completo de Sessões</h3>
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="history-search" oninput="renderHistoryTable()" placeholder="Buscar por assunto ou matéria..." class="p-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-xs w-full sm:w-64 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-600 dark:text-slate-300">
+                        <thead class="bg-slate-50 dark:bg-slate-700/50 uppercase font-semibold text-slate-400 border-b border-slate-200 dark:border-slate-700">
+                            <tr>
+                                <th class="p-3">Data</th>
+                                <th class="p-3">Matéria</th>
+                                <th class="p-3">Assunto</th>
+                                <th class="p-3">Duração</th>
+                                <th class="p-3">Questões</th>
+                                <th class="p-3 text-right">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body" class="divide-y divide-slate-100 dark:divide-slate-700/60">
+                            <!-- Dynamic history rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. SUBJECTS MANAGEMENT TAB -->
+        <section id="tab-subjects" class="tab-content hidden space-y-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Gerenciador de Matérias</h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Adicione, edite e personalize suas disciplinas de estudo.</p>
+                </div>
+                <button onclick="openNewSubjectModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs rounded-xl shadow transition">
+                    <i class="fa-solid fa-plus mr-1"></i> Nova Matéria
+                </button>
+            </div>
+
+            <!-- SUBJECTS CARDS GRID -->
+            <div id="subjects-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Dynamic subject cards -->
+            </div>
+        </section>
+
+        <!-- 6. SETTINGS TAB -->
+        <section id="tab-settings" class="tab-content hidden space-y-6">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Configurações & Backup</h2>
+                <p class="text-sm text-slate-500 dark:text-slate-400">Gerencie preferências e faça backup dos seus dados.</p>
+            </div>
+
+            <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm space-y-6 max-w-2xl">
+                <!-- DARK MODE TOGGLE -->
+                <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-700">
+                    <div>
+                        <h4 class="font-bold text-slate-900 dark:text-white text-sm">Aparência da Plataforma</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Alternar entre tema Claro e Escuro (Dark Mode)</p>
+                    </div>
+                    <button onclick="toggleDarkMode()" class="px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl font-medium text-xs flex items-center gap-2">
+                        <i class="fa-solid fa-moon dark:hidden"></i>
+                        <i class="fa-solid fa-sun hidden dark:block text-amber-400"></i>
+                        <span id="darkmode-status-text">Tema Escuro</span>
+                    </button>
+                </div>
+
+                <!-- DAILY GOAL SETTING -->
+                <div class="pb-4 border-b border-slate-100 dark:border-slate-700">
+                    <label class="block font-bold text-slate-900 dark:text-white text-sm mb-1">Meta Diária de Estudos (Horas)</label>
+                    <div class="flex items-center gap-3 mt-2">
+                        <input type="number" id="setting-daily-goal" min="1" max="24" value="4" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white text-sm w-32">
+                        <button onclick="saveDailyGoalSetting()" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs rounded-xl shadow">
+                            Salvar Meta
+                        </button>
+                    </div>
+                </div>
+
+                <!-- BACKUP AND RESTORE -->
+                <div>
+                    <h4 class="font-bold text-slate-900 dark:text-white text-sm mb-1">Backup dos Dados</h4>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Exportes seus dados para um arquivo JSON para segurança ou para transferir de computador.</p>
+                    
+                    <div class="flex flex-wrap items-center gap-3">
+                        <button onclick="exportDataJSON()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs rounded-xl shadow flex items-center gap-2">
+                            <i class="fa-solid fa-download"></i> Baixar Backup (JSON)
+                        </button>
+
+                        <label class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-medium text-xs rounded-xl cursor-pointer flex items-center gap-2">
+                            <i class="fa-solid fa-upload"></i> Carregar Backup
+                            <input type="file" id="import-json-file" accept=".json" onchange="importDataJSON(event)" class="hidden">
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MOBILE BOTTOM NAVIGATION -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 flex justify-around py-2 z-30 shadow-lg">
+        <button onclick="switchTab('dashboard')" class="mobile-nav-btn text-indigo-600 dark:text-indigo-400 flex flex-col items-center gap-0.5 text-[10px] font-medium">
+            <i class="fa-solid fa-chart-pie text-base"></i>Dashboard
+        </button>
+        <button onclick="switchTab('timer')" class="mobile-nav-btn text-slate-400 flex flex-col items-center gap-0.5 text-[10px] font-medium">
+            <i class="fa-solid fa-stopwatch text-base"></i>Cronômetro
+        </button>
+        <button onclick="switchTab('calendar')" class="mobile-nav-btn text-slate-400 flex flex-col items-center gap-0.5 text-[10px] font-medium">
+            <i class="fa-solid fa-calendar-days text-base"></i>Calendário
+        </button>
+        <button onclick="switchTab('analytics')" class="mobile-nav-btn text-slate-400 flex flex-col items-center gap-0.5 text-[10px] font-medium">
+            <i class="fa-solid fa-chart-column text-base"></i>Relatórios
+        </button>
+        <button onclick="switchTab('subjects')" class="mobile-nav-btn text-slate-400 flex flex-col items-center gap-0.5 text-[10px] font-medium">
+            <i class="fa-solid fa-book text-base"></i>Matérias
+        </button>
+    </nav>
+
+    <!-- NEW SUBJECT MODAL -->
+    <div id="modal-new-subject" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 max-w-md w-full shadow-xl border border-slate-200 dark:border-slate-700 space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="font-bold text-slate-900 dark:text-white">Cadastrar Nova Matéria</h3>
+                <button onclick="closeNewSubjectModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Nome da Matéria</label>
+                <input type="text" id="modal-subject-name" placeholder="Ex: Criminologia, Direito Constitucional..." class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white text-sm focus:outline-none">
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Cor de Identificação</label>
+                <input type="color" id="modal-subject-color" value="#6366f1" class="w-full h-10 p-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 cursor-pointer">
+            </div>
+
+            <button onclick="saveNewSubject()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-sm shadow transition">
+                Salvar Matéria
+            </button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT APP LOGIC -->
+    <script>
+        // DEFAULT INITIAL SUBJECTS
+        const DEFAULT_SUBJECTS = [
+            { id: '1', name: 'Português', color: '#3b82f6' },
+            { id: '2', name: 'Matemática', color: '#10b981' },
+            { id: '3', name: 'Fotografia', color: '#f59e0b' },
+            { id: '4', name: 'Informática', color: '#8b5cf6' },
+            { id: '5', name: 'Direito Penal', color: '#ef4444' },
+            { id: '6', name: 'Direito Administrativo', color: '#ec4899' },
+            { id: '7', name: 'Direito Processual Penal', color: '#14b8a6' },
+            { id: '8', name: 'Leis Especiais', color: '#6366f1' },
+            { id: '9', name: 'Direitos Humanos', color: '#06b6d4' },
+            { id: '10', name: 'Criminologia', color: '#84cc16' },
+            { id: '11', name: 'Raciocínio Lógico Matemático', color: '#d97706' }
+        ];
+
+        // APP STATE
+        let appState = {
+            subjects: [],
+            sessions: [],
+            dailyGoalHours: 4,
+            currentMonth: new Date().getMonth(),
+            currentYear: new Date().getFullYear(),
+        };
+
+        // TIMER STATE
+        let timerInterval = null;
+        let timerSeconds = 0;
+        let isTimerRunning = false;
+
+        // CHART INSTANCES
+        let pieChartInstance = null;
+        let barChartInstance = null;
+
+        // INITIALIZATION
+        window.addEventListener('DOMContentLoaded', () => {
+            loadStateFromLocalStorage();
+            initializeTodayDateInput();
+            renderAllTabs();
+        });
+
+        function loadStateFromLocalStorage() {
+            const savedSubjects = localStorage.getItem('estudoflow_subjects');
+            const savedSessions = localStorage.getItem('estudoflow_sessions');
+            const savedGoal = localStorage.getItem('estudoflow_goal');
+
+            appState.subjects = savedSubjects ? JSON.parse(savedSubjects) : DEFAULT_SUBJECTS;
+            appState.sessions = savedSessions ? JSON.parse(savedSessions) : [];
+            appState.dailyGoalHours = savedGoal ? parseInt(savedGoal) : 4;
+
+            // Check Dark Mode
+            if (localStorage.getItem('estudoflow_dark') === 'true') {
+                document.documentElement.classList.add('dark');
+            }
+        }
+
+        function saveStateToLocalStorage() {
+            localStorage.setItem('estudoflow_subjects', JSON.stringify(appState.subjects));
+            localStorage.setItem('estudoflow_sessions', JSON.stringify(appState.sessions));
+            localStorage.setItem('estudoflow_goal', appState.dailyGoalHours.toString());
+        }
+
+        function initializeTodayDateInput() {
+            const today = new Date().toISOString().split('T')[0];
+            const manualDate = document.getElementById('manual-date-input');
+            if (manualDate) manualDate.value = today;
+            const settingGoal = document.getElementById('setting-daily-goal');
+            if (settingGoal) settingGoal.value = appState.dailyGoalHours;
+        }
+
+        // TAB SWITCHING
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            const selectedTab = document.getElementById(`tab-${tabName}`);
+            if (selectedTab) selectedTab.classList.remove('hidden');
+
+            // Update Desktop Nav styles
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.className = "nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50";
+            });
+            const activeNav = document.getElementById(`nav-${tabName}`);
+            if (activeNav) {
+                activeNav.className = "nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all text-indigo-600 bg-indigo-50 dark:bg-indigo-900/40 dark:text-indigo-300 font-semibold";
+            }
+
+            renderAllTabs();
+        }
+
+        function renderAllTabs() {
+            populateSubjectSelects();
+            renderDashboard();
+            renderCalendar();
+            renderChartsAndAnalytics();
+            renderSubjectsTab();
+        }
+
+        // POPULATE SUBJECT SELECT DROPDOWNS
+        function populateSubjectSelects() {
+            const selects = ['timer-subject-select', 'manual-subject-select'];
+            selects.forEach(selectId => {
+                const selectEl = document.getElementById(selectId);
+                if (!selectEl) return;
+                const currentVal = selectEl.value;
+                selectEl.innerHTML = '';
+                appState.subjects.forEach(subj => {
+                    const opt = document.createElement('option');
+                    opt.value = subj.name;
+                    opt.textContent = subj.name;
+                    selectEl.appendChild(opt);
+                });
+                if (currentVal && appState.subjects.some(s => s.name === currentVal)) {
+                    selectEl.value = currentVal;
+                }
+            });
+        }
+
+        // RENDER DASHBOARD
+        function renderDashboard() {
+            const todayStr = new Date().toISOString().split('T')[0];
+            
+            // Calculate today seconds
+            const todaySeconds = appState.sessions
+                .filter(s => s.date === todayStr)
+                .reduce((acc, s) => acc + s.durationSeconds, 0);
+            
+            const todayHours = (todaySeconds / 3600).toFixed(1);
+            document.getElementById('stat-today-hours').textContent = formatSecondsToHM(todaySeconds);
+            document.getElementById('stat-goal-target').textContent = `${appState.dailyGoalHours}h`;
+
+            // Progress bar
+            const goalSeconds = appState.dailyGoalHours * 3600;
+            const percentage = Math.min(100, Math.round((todaySeconds / goalSeconds) * 100));
+            document.getElementById('goal-percentage').textContent = `${percentage}%`;
+            document.getElementById('goal-progress-bar').style.width = `${percentage}%`;
+
+            // Streak
+            const streak = calculateStreak();
+            document.getElementById('stat-streak').textContent = `${streak} ${streak === 1 ? 'dia' : 'dias'}`;
+
+            // Total Acumulado
+            const totalSeconds = appState.sessions.reduce((acc, s) => acc + s.durationSeconds, 0);
+            document.getElementById('stat-total-hours').textContent = formatSecondsToHM(totalSeconds);
+            document.getElementById('stat-total-sessions').textContent = `${appState.sessions.length} sessões registradas`;
+
+            // Top Subject
+            const subjectTotals = {};
+            appState.sessions.forEach(s => {
+                subjectTotals[s.subject] = (subjectTotals[s.subject] || 0) + s.durationSeconds;
+            });
+            let topSubject = '--';
+            let maxSeconds = 0;
+            Object.keys(subjectTotals).forEach(subj => {
+                if (subjectTotals[subj] > maxSeconds) {
+                    maxSeconds = subjectTotals[subj];
+                    topSubject = subj;
+                }
+            });
+            document.getElementById('stat-top-subject').textContent = topSubject;
+            document.getElementById('stat-top-subject-hours').textContent = formatSecondsToHM(maxSeconds) + ' estudados';
+
+            // Dashboard Recent Sessions List
+            const recentList = document.getElementById('dashboard-recent-list');
+            recentList.innerHTML = '';
+            const sortedSessions = [...appState.sessions].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 5);
+            
+            if (sortedSessions.length === 0) {
+                recentList.innerHTML = `<p class="text-xs text-slate-400 italic text-center py-4">Nenhuma sessão registrada ainda. Inicie no cronômetro!</p>`;
+            } else {
+                sortedSessions.forEach(s => {
+                    const subjObj = appState.subjects.find(sub => sub.name === s.subject) || { color: '#6366f1' };
+                    const div = document.createElement('div');
+                    div.className = "flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-700/50";
+                    div.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <span class="w-3 h-3 rounded-full" style="background-color: ${subjObj.color}"></span>
+                            <div>
+                                <h4 class="font-semibold text-xs text-slate-800 dark:text-slate-200">${escapeHtml(s.subject)}</h4>
+                                <p class="text-[10px] text-slate-400">${s.topic ? escapeHtml(s.topic) : 'Geral'} • ${formatDateBR(s.date)}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="font-mono font-bold text-xs text-slate-700 dark:text-slate-300">${formatSecondsToHM(s.durationSeconds)}</span>
+                        </div>
+                    `;
+                    recentList.appendChild(div);
+                });
+            }
+
+            // Dashboard Subject Pills
+            const pillsContainer = document.getElementById('dashboard-subject-pills');
+            pillsContainer.innerHTML = '';
+            appState.subjects.forEach(subj => {
+                const totalSec = subjectTotals[subj.name] || 0;
+                const div = document.createElement('div');
+                div.className = "flex items-center justify-between text-xs p-2 rounded-lg bg-slate-50 dark:bg-slate-700/30";
+                div.innerHTML = `
+                    <div class="flex items-center gap-2 truncate">
+                        <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: ${subj.color}"></span>
+                        <span class="font-medium text-slate-700 dark:text-slate-300 truncate">${escapeHtml(subj.name)}</span>
+                    </div>
+                    <span class="font-mono text-[10px] text-slate-500">${formatSecondsToHM(totalSec)}</span>
+                `;
+                pillsContainer.appendChild(div);
+            });
+        }
+
+        // TIMER FUNCTIONS
+        function setTimerSubMode(mode) {
+            document.getElementById('timer-mode-stopwatch').classList.toggle('hidden', mode !== 'stopwatch');
+            document.getElementById('timer-mode-manual').classList.toggle('hidden', mode !== 'manual');
+
+            const btnStopwatch = document.getElementById('submode-stopwatch');
+            const btnManual = document.getElementById('submode-manual');
+
+            if (mode === 'stopwatch') {
+                btnStopwatch.className = "py-2.5 px-4 font-medium text-sm border-b-2 border-indigo-600 text-indigo-600 dark:text-indigo-400";
+                btnManual.className = "py-2.5 px-4 font-medium text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400";
+            } else {
+                btnManual.className = "py-2.5 px-4 font-medium text-sm border-b-2 border-indigo-600 text-indigo-600 dark:text-indigo-400";
+                btnStopwatch.className = "py-2.5 px-4 font-medium text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400";
+            }
+        }
+
+        function startTimer() {
+            if (isTimerRunning) return;
+            isTimerRunning = true;
+            
+            document.getElementById('btn-timer-start').disabled = true;
+            document.getElementById('btn-timer-start').classList.add('opacity-50', 'cursor-not-allowed');
+            
+            const btnPause = document.getElementById('btn-timer-pause');
+            btnPause.disabled = false;
+            btnPause.classList.remove('opacity-50', 'cursor-not-allowed');
+
+            const btnStop = document.getElementById('btn-timer-stop');
+            btnStop.disabled = false;
+            btnStop.classList.remove('opacity-50', 'cursor-not-allowed');
+
+            document.getElementById('timer-status-text').textContent = "Em andamento...";
+            document.getElementById('timer-status-text').className = "text-xs font-semibold uppercase tracking-widest text-emerald-500 mt-2 animate-pulse";
+
+            document.getElementById('sidebar-status-tag').textContent = "ESTUDANDO";
+            document.getElementById('sidebar-status-tag').className = "px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500 text-white";
+
+            timerInterval = setInterval(() => {
+                timerSeconds++;
+                updateTimerDisplays();
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            if (!isTimerRunning) return;
+            isTimerRunning = false;
+            clearInterval(timerInterval);
+
+            document.getElementById('btn-timer-start').disabled = false;
+            document.getElementById('btn-timer-start').classList.remove('opacity-50', 'cursor-not-allowed');
+
+            document.getElementById('btn-timer-pause').disabled = true;
+            document.getElementById('btn-timer-pause').classList.add('opacity-50', 'cursor-not-allowed');
+
+            document.getElementById('timer-status-text').textContent = "Pausado";
+            document.getElementById('timer-status-text').className = "text-xs font-semibold uppercase tracking-widest text-amber-500 mt-2";
+
+            document.getElementById('sidebar-status-tag').textContent = "PAUSADO";
+            document.getElementById('sidebar-status-tag').className = "px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white";
+        }
+
+        function finishTimer() {
+            if (timerSeconds < 5) {
+                alert("Sessão muito curta para ser salva (mínimo 5 segundos).");
+                resetTimer();
+                return;
+            }
+
+            pauseTimer();
+
+            const subject = document.getElementById('timer-subject-select').value;
+            const topic = document.getElementById('timer-topic-input').value.trim();
+            const questionsCount = parseInt(document.getElementById('timer-questions-count').value) || 0;
+            const questionsCorrect = parseInt(document.getElementById('timer-questions-correct').value) || 0;
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            const newSession = {
+                id: Date.now().toString(),
+                subject: subject,
+                topic: topic,
+                durationSeconds: timerSeconds,
+                questionsCount: questionsCount,
+                questionsCorrect: questionsCorrect,
+                date: todayStr,
+                timestamp: new Date().toISOString()
+            };
+
+            appState.sessions.push(newSession);
+            saveStateToLocalStorage();
+            resetTimer();
+
+            alert("🎉 Sessão de estudo salva com sucesso!");
+            renderAllTabs();
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            timerSeconds = 0;
+            updateTimerDisplays();
+
+            document.getElementById('btn-timer-start').disabled = false;
+            document.getElementById('btn-timer-start').classList.remove('opacity-50', 'cursor-not-allowed');
+
+            document.getElementById('btn-timer-pause').disabled = true;
+            document.getElementById('btn-timer-pause').classList.add('opacity-50', 'cursor-not-allowed');
+
+            document.getElementById('btn-timer-stop').disabled = true;
+            document.getElementById('btn-timer-stop').classList.add('opacity-50', 'cursor-not-allowed');
+
+            document.getElementById('timer-status-text').textContent = "Pronto para iniciar";
+            document.getElementById('timer-status-text').className = "text-xs font-semibold uppercase tracking-widest text-slate-400 mt-2";
+
+            document.getElementById('sidebar-status-tag').textContent = "PARADO";
+            document.getElementById('sidebar-status-tag').className = "px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-600 dark:bg-slate-600 dark:text-slate-300";
+            
+            document.getElementById('timer-topic-input').value = '';
+            document.getElementById('timer-questions-count').value = '0';
+            document.getElementById('timer-questions-correct').value = '0';
+        }
+
+        function updateTimerDisplays() {
+            const formatted = formatSecondsToHMS(timerSeconds);
+            document.getElementById('main-timer-display').textContent = formatted;
+            document.getElementById('sidebar-timer-display').textContent = formatted;
+            
+            const subj = document.getElementById('timer-subject-select').value;
+            document.getElementById('sidebar-subject-display').textContent = subj || 'Nenhuma matéria';
+        }
+
+        function saveManualSession() {
+            const subject = document.getElementById('manual-subject-select').value;
+            const topic = document.getElementById('manual-topic-input').value.trim();
+            const date = document.getElementById('manual-date-input').value;
+            const minutes = parseInt(document.getElementById('manual-duration-input').value);
+            const questionsCount = parseInt(document.getElementById('manual-questions-count').value) || 0;
+            const questionsCorrect = parseInt(document.getElementById('manual-questions-correct').value) || 0;
+
+            if (!subject || !date || isNaN(minutes) || minutes <= 0) {
+                alert("Por favor, preencha a matéria, a data e a duração em minutos.");
+                return;
+            }
+
+            const newSession = {
+                id: Date.now().toString(),
+                subject: subject,
+                topic: topic,
+                durationSeconds: minutes * 60,
+                questionsCount: questionsCount,
+                questionsCorrect: questionsCorrect,
+                date: date,
+                timestamp: new Date(date).toISOString()
+            };
+
+            appState.sessions.push(newSession);
+            saveStateToLocalStorage();
+
+            // Clear inputs
+            document.getElementById('manual-topic-input').value = '';
+            document.getElementById('manual-duration-input').value = '';
+            document.getElementById('manual-questions-count').value = '0';
+            document.getElementById('manual-questions-correct').value = '0';
+
+            alert("Sessão manual salva com sucesso!");
+            renderAllTabs();
+        }
+
+        // CALENDAR RENDER
+        function renderCalendar() {
+            const year = appState.currentYear;
+            const month = appState.currentMonth;
+
+            const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+            document.getElementById('calendar-month-year').textContent = `${monthNames[month]} ${year}`;
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            const grid = document.getElementById('calendar-days-grid');
+            grid.innerHTML = '';
+
+            // Empty slots for previous month
+            for (let i = 0; i < firstDay; i++) {
+                const empty = document.createElement('div');
+                empty.className = "h-20 bg-slate-50/50 dark:bg-slate-900/30 rounded-2xl border border-transparent";
+                grid.appendChild(empty);
+            }
+
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const daySessions = appState.sessions.filter(s => s.date === dayDateStr);
+                const isToday = dayDateStr === todayStr;
+
+                const dayCell = document.createElement('div');
+                dayCell.className = `h-20 p-1.5 rounded-2xl border transition cursor-pointer flex flex-col justify-between ${
+                    isToday ? 'border-indigo-500 bg-indigo-50/30 dark:bg-indigo-900/20' : 'border-slate-100 dark:border-slate-700/60 hover:border-slate-300 dark:hover:border-slate-600 bg-slate-50/30 dark:bg-slate-800/40'
+                }`;
+                dayCell.onclick = () => showDayDetails(dayDateStr, daySessions);
+
+                // Date label
+                const dayHeader = document.createElement('div');
+                dayHeader.className = "flex items-center justify-between";
+                dayHeader.innerHTML = `<span class="text-xs font-bold ${isToday ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-slate-300'}">${day}</span>`;
+                
+                if (daySessions.length > 0) {
+                    const totalSec = daySessions.reduce((acc, s) => acc + s.durationSeconds, 0);
+                    dayHeader.innerHTML += `<span class="text-[9px] font-mono text-slate-400">${formatSecondsToHM(totalSec)}</span>`;
+                }
+
+                // Subject pills/dots
+                const dotsContainer = document.createElement('div');
+                dotsContainer.className = "flex flex-wrap gap-1 overflow-hidden max-h-10";
+
+                const uniqueSubjects = [...new Set(daySessions.map(s => s.subject))];
+                uniqueSubjects.forEach(subjName => {
+                    const subjObj = appState.subjects.find(s => s.name === subjName) || { color: '#6366f1' };
+                    const dot = document.createElement('span');
+                    dot.className = "w-2 h-2 rounded-full";
+                    dot.style.backgroundColor = subjObj.color;
+                    dot.title = subjName;
+                    dotsContainer.appendChild(dot);
+                });
+
+                dayCell.appendChild(dayHeader);
+                dayCell.appendChild(dotsContainer);
+                grid.appendChild(dayCell);
+            }
+        }
+
+        function changeCalendarMonth(delta) {
+            appState.currentMonth += delta;
+            if (appState.currentMonth < 0) {
+                appState.currentMonth = 11;
+                appState.currentYear--;
+            } else if (appState.currentMonth > 11) {
+                appState.currentMonth = 0;
+                appState.currentYear++;
+            }
+            renderCalendar();
+        }
+
+        function showDayDetails(dateStr, sessions) {
+            const panel = document.getElementById('day-details-panel');
+            const title = document.getElementById('day-details-title');
+            const list = document.getElementById('day-details-list');
+
+            title.textContent = `Estudos no dia ${formatDateBR(dateStr)}`;
+            list.innerHTML = '';
+
+            if (sessions.length === 0) {
+                list.innerHTML = `<p class="text-xs text-slate-400 italic">Nenhum estudo registrado nesta data.</p>`;
+            } else {
+                sessions.forEach(s => {
+                    const subjObj = appState.subjects.find(sub => sub.name === s.subject) || { color: '#6366f1' };
+                    const div = document.createElement('div');
+                    div.className = "flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-700/50 text-xs";
+                    div.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full" style="background-color: ${subjObj.color}"></span>
+                            <div>
+                                <span class="font-bold text-slate-800 dark:text-slate-200">${escapeHtml(s.subject)}</span>
+                                ${s.topic ? `<p class="text-[10px] text-slate-400">${escapeHtml(s.topic)}</p>` : ''}
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="font-mono font-bold text-slate-700 dark:text-slate-300">${formatSecondsToHM(s.durationSeconds)}</span>
+                            ${s.questionsCount > 0 ? `<p class="text-[10px] text-slate-400">${s.questionsCorrect}/${s.questionsCount} qsts</p>` : ''}
+                        </div>
+                    `;
+                    list.appendChild(div);
+                });
+            }
+
+            panel.classList.remove('hidden');
+        }
+
+        function closeDayDetails() {
+            document.getElementById('day-details-panel').classList.add('hidden');
+        }
+
+        // CHARTS & ANALYTICS
+        function renderChartsAndAnalytics() {
+            renderPieChart();
+            renderBarChart();
+            renderHistoryTable();
+        }
+
+        function renderPieChart() {
+            const ctx = document.getElementById('chart-pie-subjects');
+            if (!ctx) return;
+
+            const subjectTotals = {};
+            appState.sessions.forEach(s => {
+                subjectTotals[s.subject] = (subjectTotals[s.subject] || 0) + s.durationSeconds;
+            });
+
+            const labels = [];
+            const dataHours = [];
+            const backgroundColors = [];
+
+            appState.subjects.forEach(subj => {
+                const sec = subjectTotals[subj.name] || 0;
+                if (sec > 0) {
+                    labels.push(subj.name);
+                    dataHours.push((sec / 3600).toFixed(2));
+                    backgroundColors.push(subj.color);
+                }
+            });
+
+            if (pieChartInstance) pieChartInstance.destroy();
+
+            if (labels.length === 0) {
+                // Empty state fallback chart
+                pieChartInstance = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Sem dados'],
+                        datasets: [{ data: [1], backgroundColor: ['#e2e8f0'] }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                });
+                return;
+            }
+
+            pieChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: dataHours,
+                        backgroundColor: backgroundColors,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { boxWidth: 12, font: { size: 11 } } }
+                    }
+                }
+            });
+        }
+
+        function renderBarChart() {
+            const ctx = document.getElementById('chart-bar-daily');
+            if (!ctx) return;
+
+            const labels = [];
+            const dataHours = [];
+
+            for (let i = 13; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                const dateStr = d.toISOString().split('T')[0];
+                labels.push(formatDateBRShort(dateStr));
+
+                const daySeconds = appState.sessions
+                    .filter(s => s.date === dateStr)
+                    .reduce((acc, s) => acc + s.durationSeconds, 0);
+
+                dataHours.push((daySeconds / 3600).toFixed(2));
+            }
+
+            if (barChartInstance) barChartInstance.destroy();
+
+            barChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Horas Estudadas',
+                        data: dataHours,
+                        backgroundColor: '#6366f1',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Horas' } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        function renderHistoryTable() {
+            const tbody = document.getElementById('history-table-body');
+            if (!tbody) return;
+
+            const searchTerm = (document.getElementById('history-search')?.value || '').toLowerCase();
+
+            const filteredSessions = appState.sessions.filter(s => {
+                return s.subject.toLowerCase().includes(searchTerm) || (s.topic && s.topic.toLowerCase().includes(searchTerm));
+            }).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+            tbody.innerHTML = '';
+
+            if (filteredSessions.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400 italic">Nenhum registro encontrado.</td></tr>`;
+                return;
+            }
+
+            filteredSessions.forEach(s => {
+                const subjObj = appState.subjects.find(sub => sub.name === s.subject) || { color: '#6366f1' };
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 dark:hover:bg-slate-700/30 transition";
+                tr.innerHTML = `
+                    <td class="p-3 font-mono">${formatDateBR(s.date)}</td>
+                    <td class="p-3">
+                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold text-white" style="background-color: ${subjObj.color}">
+                            ${escapeHtml(s.subject)}
+                        </span>
+                    </td>
+                    <td class="p-3 font-medium text-slate-800 dark:text-slate-200">${s.topic ? escapeHtml(s.topic) : '-'}</td>
+                    <td class="p-3 font-mono font-semibold">${formatSecondsToHM(s.durationSeconds)}</td>
+                    <td class="p-3">${s.questionsCount > 0 ? `${s.questionsCorrect}/${s.questionsCount}` : '-'}</td>
+                    <td class="p-3 text-right">
+                        <button onclick="deleteSession('${s.id}')" class="text-rose-500 hover:text-rose-700 p-1">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function deleteSession(sessionId) {
+            if (confirm("Tem certeza que deseja apagar esta sessão de estudo?")) {
+                appState.sessions = appState.sessions.filter(s => s.id !== sessionId);
+                saveStateToLocalStorage();
+                renderAllTabs();
+            }
+        }
+
+        // SUBJECTS TAB
+        function renderSubjectsTab() {
+            const grid = document.getElementById('subjects-cards-grid');
+            if (!grid) return;
+
+            grid.innerHTML = '';
+
+            const subjectTotals = {};
+            appState.sessions.forEach(s => {
+                subjectTotals[s.subject] = (subjectTotals[s.subject] || 0) + s.durationSeconds;
+            });
+
+            appState.subjects.forEach(subj => {
+                const totalSec = subjectTotals[subj.name] || 0;
+                const card = document.createElement('div');
+                card.className = "bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-4 shadow-sm flex flex-col justify-between space-y-3";
+                card.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-4 h-4 rounded-full flex-shrink-0" style="background-color: ${subj.color}"></span>
+                            <h4 class="font-bold text-slate-900 dark:text-white text-sm truncate">${escapeHtml(subj.name)}</h4>
+                        </div>
+                        <button onclick="deleteSubject('${subj.id}')" class="text-slate-300 hover:text-rose-500 text-xs p-1">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+
+                    <div class="bg-slate-50 dark:bg-slate-700/40 p-3 rounded-xl flex items-center justify-between text-xs">
+                        <span class="text-slate-500">Tempo Total</span>
+                        <span class="font-mono font-bold text-slate-800 dark:text-slate-200">${formatSecondsToHM(totalSec)}</span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function openNewSubjectModal() {
+            document.getElementById('modal-new-subject').classList.remove('hidden');
+        }
+
+        function closeNewSubjectModal() {
+            document.getElementById('modal-new-subject').classList.add('hidden');
+        }
+
+        function saveNewSubject() {
+            const nameInput = document.getElementById('modal-subject-name');
+            const colorInput = document.getElementById('modal-subject-color');
+
+            const name = nameInput.value.trim();
+            const color = colorInput.value;
+
+            if (!name) {
+                alert("Por favor, digite o nome da matéria.");
+                return;
+            }
+
+            if (appState.subjects.some(s => s.name.toLowerCase() === name.toLowerCase())) {
+                alert("Já existe uma matéria com este nome.");
+                return;
+            }
+
+            appState.subjects.push({
+                id: Date.now().toString(),
+                name: name,
+                color: color
+            });
+
+            saveStateToLocalStorage();
+            nameInput.value = '';
+            closeNewSubjectModal();
+            renderAllTabs();
+        }
+
+        function deleteSubject(subjectId) {
+            if (confirm("Deseja apagar esta matéria? As sessões já salvas dela continuarão no histórico.")) {
+                appState.subjects = appState.subjects.filter(s => s.id !== subjectId);
+                saveStateToLocalStorage();
+                renderAllTabs();
+            }
+        }
+
+        // SETTINGS & BACKUP
+        function toggleDarkMode() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('estudoflow_dark', isDark.toString());
+        }
+
+        function saveDailyGoalSetting() {
+            const val = parseInt(document.getElementById('setting-daily-goal').value);
+            if (!isNaN(val) && val > 0) {
+                appState.dailyGoalHours = val;
+                saveStateToLocalStorage();
+                alert("Meta diária atualizada com sucesso!");
+                renderAllTabs();
+            }
+        }
+
+        function exportDataJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `estudoflow_backup_${new Date().toISOString().split('T')[0]}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importDataJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (imported.subjects && imported.sessions) {
+                        appState = imported;
+                        saveStateToLocalStorage();
+                        alert("Backup restaurado com sucesso!");
+                        renderAllTabs();
+                    } else {
+                        alert("Arquivo de backup inválido.");
+                    }
+                } catch (err) {
+                    alert("Erro ao ler arquivo JSON.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // UTILITY FUNCTIONS
+        function calculateStreak() {
+            if (appState.sessions.length === 0) return 0;
+            const dates = [...new Set(appState.sessions.map(s => s.date))].sort().reverse();
+            
+            const todayStr = new Date().toISOString().split('T')[0];
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+            if (!dates.includes(todayStr) && !dates.includes(yesterdayStr)) {
+                return 0;
+            }
+
+            let streak = 0;
+            let checkDate = dates.includes(todayStr) ? new Date() : yesterday;
+
+            while (true) {
+                const checkStr = checkDate.toISOString().split('T')[0];
+                if (dates.includes(checkStr)) {
+                    streak++;
+                    checkDate.setDate(checkDate.getDate() - 1);
+                } else {
+                    break;
+                }
+            }
+
+            return streak;
+        }
+
+        function formatSecondsToHMS(sec) {
+            const h = Math.floor(sec / 3600);
+            const m = Math.floor((sec % 3600) / 60);
+            const s = sec % 60;
+            return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+
+        function formatSecondsToHM(sec) {
+            const h = Math.floor(sec / 3600);
+            const m = Math.floor((sec % 3600) / 60);
+            if (h === 0) return `${m}m`;
+            return `${h}h ${String(m).padStart(2, '0')}m`;
+        }
+
+        function formatDateBR(dateStr) {
+            if (!dateStr) return '';
+            const [y, m, d] = dateStr.split('-');
+            return `${d}/${m}/${y}`;
+        }
+
+        function formatDateBRShort(dateStr) {
+            if (!dateStr) return '';
+            const [y, m, d] = dateStr.split('-');
+            return `${d}/${m}`;
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
