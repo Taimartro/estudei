@@ -639,13 +639,23 @@
             { id: '11', name: 'Raciocínio Lógico Matemático', color: '#6366f1' }
         ];
 
+
+        const DEFAULT_FIREBASE_CONFIG = {
+            apiKey: 'AIzaSyCs2Z6SUWeYmJ0oy4eJQBCIYJyyEYCObQ0',
+            authDomain: 'meus-estudos-793e7.firebaseapp.com',
+            databaseURL: 'https://meus-estudos-793e7-default-rtdb.firebaseio.com',
+            projectId: 'meus-estudos-793e7',
+            appId: '1:508512270400:web:9fe04b725c7c50564cc7a5'
+        };
+
         // APP STATE
         let appData = {
             subjects: DEFAULT_SUBJECTS,
             sessions: [],
             goalHours: 4,
-            firebaseConfig: {}
+            firebaseConfig: DEFAULT_FIREBASE_CONFIG
         };
+
 
         let currentUser = null;
         let isFirebaseActive = false;
@@ -678,7 +688,7 @@
                     if (parsed.subjects && parsed.subjects.length) appData.subjects = parsed.subjects;
                     if (parsed.sessions) appData.sessions = parsed.sessions;
                     if (parsed.goalHours) appData.goalHours = parsed.goalHours;
-                    if (parsed.firebaseConfig) appData.firebaseConfig = parsed.firebaseConfig;
+                    if (parsed.firebaseConfig && parsed.firebaseConfig.apiKey) { appData.firebaseConfig = parsed.firebaseConfig; } else { appData.firebaseConfig = DEFAULT_FIREBASE_CONFIG; }
                 } catch(e) { console.error(e); }
             }
         }
